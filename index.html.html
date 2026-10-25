@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AeroScope: Cloud-Native Land-Use Change Detection</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--tx:#0d1b24;--mu:#546672;--ln:#d9e2e6;--a:#0b7f8f;--b:#4f46e5;--g:#13805a;--r:#d93a2f;--soft:#e6f1f2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#08131b;--card:#10212c;--tx:#e8f1f4;--mu:#93a9b4;--ln:#1f3441;--a:#3fd0e0;--b:#9a9cff;--g:#4fd8a0;--r:#ff6a5c;--soft:#0e2a35}}
+:root[data-theme="dark"]{--bg:#08131b;--card:#10212c;--tx:#e8f1f4;--mu:#93a9b4;--ln:#1f3441;--a:#3fd0e0;--b:#9a9cff;--g:#4fd8a0;--r:#ff6a5c;--soft:#0e2a35}
+html{scroll-padding-top:calc(64px + env(safe-area-inset-top,0px));scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.6 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+a{color:inherit}
+.w{max-width:1120px;margin:0 auto;padding:0 20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--bg);border-bottom:1px solid var(--ln)}
+header .w{display:flex;align-items:center;gap:16px;height:60px}
+.brand{font-weight:800;font-size:20px;text-decoration:none;margin-right:auto;display:flex;gap:8px;align-items:center}
+.brand i{width:14px;height:14px;border-radius:50%;background:var(--a);box-shadow:0 0 0 4px var(--soft)}
+nav{display:flex;gap:18px}
+nav a{text-decoration:none;color:var(--mu);font-weight:500;font-size:15px}
+nav a:hover{color:var(--tx)}
+button,.btn{font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:10px;padding:8px 14px}
+button:hover,.btn:hover{border-color:var(--a)}
+button.p{background:var(--a);border-color:var(--a);color:#fff}
+:focus-visible{outline:3px solid var(--b);outline-offset:2px}
+@media(max-width:720px){nav{display:none}}
+h1{font-size:clamp(34px,6vw,64px);line-height:1.04;letter-spacing:-.025em;margin:0 0 16px;font-weight:800;max-width:15em}
+h2{font-size:clamp(26px,4vw,38px);line-height:1.1;letter-spacing:-.02em;margin:0 0 10px;font-weight:800}
+h3{margin:0 0 6px;font-size:19px}
+p{margin:0 0 12px}
+.mu{color:var(--mu)}
+section{padding:64px 0}
+.lead{font-size:clamp(17px,2vw,20px);color:var(--mu);max-width:42em}
+.hero{padding:44px 0 36px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:28px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:20px}
+.big{font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-.02em}
+.demo{display:grid;gap:18px;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);margin-top:26px}
+@media(max-width:860px){.demo{grid-template-columns:1fr}}
+.cmp{position:relative;aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--ln);background:#222;--p:50%;touch-action:pan-y}
+.cmp canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.after{position:absolute;inset:0;clip-path:inset(0 0 0 var(--p))}
+.hd{position:absolute;top:0;bottom:0;left:var(--p);width:3px;margin-left:-1.5px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);pointer-events:none}
+.hd::after{content:"\2194";position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;font-weight:800}
+.cmp input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.tag{position:absolute;top:10px;padding:3px 10px;border-radius:99px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;font-weight:700;pointer-events:none}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+select,input[type=range]{width:100%}
+select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--ln);background:var(--bg);color:var(--tx)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row input[type=file]{display:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.stat b{display:block;font-size:26px;line-height:1.1;font-weight:800}
+.stat span{font-size:13px;color:var(--mu)}
+.bar{height:10px;border-radius:6px;background:var(--ln);margin:4px 0 10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;transition:width .4s}
+.note{font-size:13px;color:var(--mu)}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--soft);padding:2px 7px;border-radius:6px;font-size:14px;display:inline-block;overflow-x:auto;max-width:100%}
+.steps{counter-reset:s;list-style:none;padding:0;margin:28px 0 0;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.steps li{counter-increment:s;position:relative;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:20px 20px 20px 62px}
+.steps li::before{content:counter(s);position:absolute;left:18px;top:18px;width:30px;height:30px;border-radius:50%;background:var(--a);color:#fff;display:grid;place-items:center;font-weight:800}
+.tl{border-left:3px solid var(--a);padding-left:18px;margin:28px 0 0 6px;display:grid;gap:18px}
+.tl div b{display:block}
+.alt{background:var(--soft)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chips span{border:1px solid var(--ln);background:var(--card);border-radius:99px;padding:4px 12px;font-size:14px}
+footer{border-top:1px solid var(--ln);padding:36px 0;color:var(--mu);font-size:15px}
+</style>
+</head>
+<body>
+<header><div class="w">
+<a class="brand" href="#top" data-go="top"><i></i>AeroScope</a>
+<nav><a href="#problem" data-go="problem">Problem</a><a href="#solution" data-go="solution">Solution</a><a href="#tech" data-go="tech">Technology</a><a href="#roadmap" data-go="roadmap">Roadmap</a></nav>
+<button id="theme" aria-label="Switch light or dark theme">Theme</button>
+</div></header>
+
+<main id="top">
+<section class="hero"><div class="w">
+<h1>See land change from orbit, without downloading a single satellite image.</h1>
+<p class="lead">AeroScope streams only the pixels it needs from open satellite archives, compares them against years of history, and flags deforestation, urban sprawl and coastal erosion as small, usable alerts.</p>
+
+<div class="demo">
+<div>
+<div class="cmp" id="cmp">
+<canvas id="cA" aria-label="Before image"></canvas>
+<div class="after"><canvas id="cB" aria-label="After image"></canvas><canvas id="cM" aria-label="Detected changes"></canvas></div>
+<span class="tag" style="left:10px">Before</span><span class="tag" style="right:10px">After</span>
+<div class="hd"></div>
+<input type="range" id="pos" min="0" max="100" value="50" aria-label="Drag to compare before and after">
+</div>
+<p class="note" style="margin-top:10px">Drag across the image to compare. Red marks vegetation loss, teal marks vegetation gain. Simulated imagery, 1 pixel = 10 m, region modelled on the Mathura–Vrindavan corridor.</p>
+</div>
+
+<div class="card">
+<h3>Run change detection</h3>
+<label for="scn">Sample scenario</label>
+<select id="scn"><option value="forest">Forest clearing</option><option value="urban">Urban expansion</option></select>
+<label for="thr">Sensitivity threshold: <output id="thv">0.20</output></label>
+<input type="range" id="thr" min="0.05" max="0.5" step="0.01" value="0.2">
+<label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="show" checked> Show detected changes</label>
+<div class="row">
+<button class="btn" onclick="document.getElementById('fa').click()">Upload before</button>
+<button class="btn" onclick="document.getElementById('fb').click()">Upload after</button>
+<button id="reset">Reset sample</button>
+<input type="file" id="fa" accept="image/*"><input type="file" id="fb" accept="image/*">
+</div>
+<p class="note" id="src" style="margin-top:10px">Using sample data.</p>
+<div class="stats">
+<div class="stat"><b id="sPct">0%</b><span>of scene changed</span></div>
+<div class="stat"><b id="sHa">0 ha</b><span>total area changed</span></div>
+<div class="stat"><b id="sN1">0</b><span>greenness before</span></div>
+<div class="stat"><b id="sN2">0</b><span>greenness after</span></div>
+</div>
+<div style="margin-top:14px"><span class="note">Vegetation loss <b id="tL"></b></span><div class="bar"><i id="bL" style="background:var(--r)"></i></div>
+<span class="note">Vegetation gain <b id="tG"></b></span><div class="bar"><i id="bG" style="background:var(--a)"></i></div></div>
+</div>
+</div>
+<p class="note">The demo runs in your browser. It uses a greenness proxy, (G − R) / (G + R), because ordinary photos have no near-infrared band. The full system uses true NDVI from Sentinel-2.</p>
+</div></section>
+
+<section id="problem" class="alt"><div class="w">
+<h2>Why land monitoring arrives too late</h2>
+<p class="lead">Decision-makers need a quick, light alert, not a pile of raw raster files.</p>
+<div class="grid">
+<div class="card"><div class="big" style="color:var(--r)">6+ months</div><h3>Reporting lag</h3><p class="mu">Surveys and census reports take months. By the time clearing is reported, illegal logging or encroachment cannot be undone.</p></div>
+<div class="card"><div class="big" style="color:var(--g)">&gt; 55%</div><h3>Cloud blindness</h3><p class="mu">Tropical and monsoon regions sit under cloud for over half the year, hiding optical satellites during peak deforestation.</p></div>
+<div class="card"><div class="big" style="color:var(--b)">100+ GB</div><h3>Download waste</h3><p class="mu">Full-scene GeoTIFFs of 1 GB or more per tile fill disks and slow every analysis down.</p></div>
+</div></div></section>
+
+<section id="solution"><div class="w">
+<h2>How AeroScope works</h2>
+<p class="lead">A four-stage cloud pipeline turns raw orbital pixels into alerts a ranger or town planner can act on the same day.</p>
+<ol class="steps">
+<li><h3>Stream</h3><p class="mu">Query STAC catalogs and read only the needed byte ranges of Cloud-Optimized GeoTIFFs, cutting network use by up to 95%.</p><code>pystac-client · Rasterio</code></li>
+<li><h3>Clean</h3><p class="mu">Mask clouds and shadows, filter radar speckle, and align scenes captured on different dates.</p><code>NumPy · Xarray</code></li>
+<li><h3>Detect</h3><p class="mu">Compare today with a multi-year baseline so harvest cycles are not mistaken for forest loss.</p><code>PyTorch Geo · U-Net</code></li>
+<li><h3>Alert</h3><p class="mu">Send vector polygons with confidence scores to dashboards, webhooks and mobile alerts.</p><code>FastAPI · PostGIS</code></li>
+</ol></div></section>
+
+<section id="tech" class="alt"><div class="w">
+<h2>Three satellites, one picture</h2>
+<div class="grid">
+<div class="card"><h3>Sentinel-2 optical</h3><p class="mu">10–20 m resolution, 13 bands, 5-day revisit. Best for vegetation and built-up mapping.</p></div>
+<div class="card"><h3>Sentinel-1 radar</h3><p class="mu">C-band SAR sees through cloud, smog and darkness. Detects canopy removal and new structures.</p></div>
+<div class="card"><h3>Landsat 8/9 archive</h3><p class="mu">Forty years of history at 30 m sets long-term norms and separates drought from lasting damage.</p></div>
+</div>
+<div class="grid">
+<div class="card"><h3>Deforestation</h3><code>NDVI = (B8 − B4) / (B8 + B4)</code><p class="mu" style="margin-top:10px">A drop below 0.3 plus lower radar backscatter triggers a felling alert.</p></div>
+<div class="card"><h3>Urban sprawl</h3><code>NDBI = (B11 − B8) / (B11 + B8)</code><p class="mu" style="margin-top:10px">Concrete and roofing reflect more in SWIR, so rising NDBI marks new construction.</p></div>
+<div class="card"><h3>Coastal erosion</h3><code>MNDWI = (B3 − B11) / (B3 + B11)</code><p class="mu" style="margin-top:10px">Separates water from sand to measure shoreline retreat in metres per year.</p></div>
+</div>
+<p class="mu" style="margin-top:22px">An alert fires only when the change exceeds three standard deviations from the historical median, which keeps false alarms low.</p>
+</div></section>
+
+<section><div class="w">
+<h2>Who it helps</h2>
+<div class="grid">
+<div class="card"><h3>Cities and planners</h3><p class="mu">Track informal settlement growth into greenbelts and heat-island density. Supports SDG 11.</p></div>
+<div class="card"><h3>Forest departments</h3><p class="mu">Give rangers logging alerts before large tree cover is lost. Supports SDG 15.</p></div>
+<div class="card"><h3>Coastal and disaster boards</h3><p class="mu">Quantify shoreline retreat as evidence for climate adaptation funding. Supports SDG 13 and 14.</p></div>
+</div>
+<div class="chips"><span>Free open data</span><span>Alerts in under 24 hours</span><span>Alerts under 50 KB for low bandwidth</span><span>Works for any district</span></div>
+</div></section>
+
+<section id="roadmap" class="alt"><div class="w">
+<h2>12-week roadmap</h2>
+<div class="tl">
+<div><b>Weeks 1–3: STAC pipeline core</b><span class="mu">Automated Sentinel-1 and Sentinel-2 ingestion through Planetary Computer and Earth Engine.</span></div>
+<div><b>Weeks 4–6: Model calibration</b><span class="mu">Tune thresholds, seasonal baselines and radar fusion. Target: change F1-score above 92%.</span></div>
+<div><b>Weeks 7–9: Pilot deployment</b><span class="mu">Live pilot over the Mathura region and Western Ghats, with webhook alerts to sample stakeholders.</span></div>
+<div><b>Weeks 10–12: Open platform</b><span class="mu">Release a QGIS plugin, public dashboard and REST API documentation.</span></div>
+</div></div></section>
+</main>
+
+<footer><div class="w">
+<b style="color:var(--tx)">Team Hackoholicks, GLA University</b><br>
+Kshitij Vikram Singh, Varalika Mishra, Shekhar Singh, Bhavya Sharma<br>
+Space Out Astro Ideathon 2026, Theme 4.3: Earth Monitoring for Environment and Disaster Management
+</div></footer>
+
+<script>
+const $=s=>document.querySelector(s),W=480,H=320;
+function hash(x,y,s){let h=(Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(s,1442695041))|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295}
+function vn(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf),a=hash(xi,yi,s),b=hash(xi+1,yi,s),c=hash(xi,yi+1,s),d=hash(xi+1,yi+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+function fbm(x,y,s){return vn(x/40,y/40,s)*.55+vn(x/18,y/18,s+1)*.3+vn(x/7,y/7,s+2)*.15}
+const cA=$('#cA'),cB=$('#cB'),cM=$('#cM'),xA=cA.getContext('2d'),xB=cB.getContext('2d'),xM=cM.getContext('2d');
+[cA,cB,cM].forEach(c=>{c.width=W;c.height=H});
+let S={},A,B,custom={a:null,b:null};
+function sample(kind){
+ const a=xA.createImageData(W,H),b=xB.createImageData(W,H),blobs=[[150,110,55],[330,90,40],[260,200,38]];
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const i=(y*W+x)*4,n=fbm(x,y,3),water=Math.abs(y-(H*.74+Math.sin(x/55)*26))<7;
+  let c=water?[40,90,140]:n>.5?[24+n*30,80+n*70,36]:(hash((x/60)|0,(y/50)|0,5)>.5?[118,168,62]:[150,158,84]),d=c;
+  if(!water){
+   if(kind==='forest'){for(const[bx,by,r]of blobs)if(Math.hypot(x-bx,y-by)+(fbm(x,y,7)-.5)*45<r)d=[168,138,102]}
+   else if(x>290&&x<450&&y>30&&y<180){d=(x%32<5||y%28<5)?[110,110,116]:(hash((x/32)|0,(y/28)|0,2)>.5?[178,172,166]:[152,98,84])}
+  }
+  const g1=(hash(x,y,9)-.5)*16,g2=(hash(x,y,11)-.5)*16;
+  for(let k=0;k<3;k++){a.data[i+k]=c[k]+g1;b.data[i+k]=d[k]+g2}
+  a.data[i+3]=b.data[i+3]=255;
+ }
+ S={a,b};
+}
+function run(){
+ const t=+$('#thr').value,a=A.data,b=B.data,m=xM.createImageData(W,H);
+ let loss=0,gain=0,sa=0,sb=0;
+ for(let i=0;i<a.length;i+=4){
+  const va=(a[i+1]-a[i])/(a[i+1]+a[i]+1),vb=(b[i+1]-b[i])/(b[i+1]+b[i]+1),d=va-vb;
+  sa+=va;sb+=vb;
+  if(Math.abs(d)>t){const l=d>0;l?loss++:gain++;m.data[i]=l?255:20;m.data[i+1]=l?50:200;m.data[i+2]=l?50:210;m.data[i+3]=175}
+ }
+ xM.putImageData(m,0,0);
+ const n=W*H,mx=Math.max(loss,gain,1),ha=v=>(v*.01).toFixed(1)+' ha';
+ $('#sPct').textContent=((loss+gain)/n*100).toFixed(1)+'%';
+ $('#sHa').textContent=ha(loss+gain);
+ $('#sN1').textContent=(sa/n).toFixed(2);$('#sN2').textContent=(sb/n).toFixed(2);
+ $('#tL').textContent=ha(loss);$('#tG').textContent=ha(gain);
+ $('#bL').style.width=loss/mx*100+'%';$('#bG').style.width=gain/mx*100+'%';
+ cM.style.display=$('#show').checked?'block':'none';
+}
+function apply(){
+ A=custom.a||S.a;B=custom.b||S.b;
+ xA.putImageData(A,0,0);xB.putImageData(B,0,0);
+ $('#src').textContent=(custom.a||custom.b)?'Using your uploaded image'+(custom.a&&custom.b?'s.':' with sample data for the other side.'):'Using sample data.';
+ run();
+}
+function load(f,k){
+ if(!f)return;const fr=new FileReader();
+ fr.onload=()=>{const im=new Image();im.onload=()=>{const t=document.createElement('canvas');t.width=W;t.height=H;const x=t.getContext('2d'),s=Math.max(W/im.width,H/im.height);x.drawImage(im,(W-im.width*s)/2,(H-im.height*s)/2,im.width*s,im.height*s);custom[k]=x.getImageData(0,0,W,H);apply()};im.src=fr.result};
+ fr.readAsDataURL(f);
+}
+$('#fa').onchange=e=>load(e.target.files[0],'a');
+$('#fb').onchange=e=>load(e.target.files[0],'b');
+$('#reset').onclick=()=>{custom={a:null,b:null};$('#fa').value=$('#fb').value='';apply()};
+$('#scn').onchange=e=>{sample(e.target.value);apply()};
+$('#thr').oninput=e=>{$('#thv').textContent=(+e.target.value).toFixed(2);run()};
+$('#show').onchange=run;
+$('#pos').oninput=e=>$('#cmp').style.setProperty('--p',e.target.value+'%');
+document.querySelectorAll('[data-go]').forEach(l=>l.onclick=e=>{e.preventDefault();const t=document.getElementById(l.dataset.go);t&&t.scrollIntoView({behavior:'smooth'})});
+$('#theme').onclick=()=>{const r=document.documentElement,d=matchMedia('(prefers-color-scheme: dark)').matches,c=r.dataset.theme||(d?'dark':'light');r.dataset.theme=c==='dark'?'light':'dark'};
+sample('forest');apply();
+</script>
+</body>
+</html>
